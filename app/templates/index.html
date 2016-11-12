@@ -1,7 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Hi, {{ user.nickname }}!</h1>
-    {% for post in posts %}
-    <div><p>{{ post.author.nickname }} says: <b>{{ post.body }}</b></p></div>
-    {% endfor %}
+    <div class="transport-form col-lg-7">
+    <div class="margins">
+    	<div class="introduction">
+	    	<h3>REDUCE THE CARBON FOOTPRINT<br>TRAVEL RESPONSIBLY</h3>
+    	</div>
+    	<div class="col-lg-5">
+	    	<div class="form-group">
+			  <label for="usr">From</label>
+			  <input type="text" class="form-control" id="from">
+			</div>
+
+			<div class="form-group">
+			  <label for="usr">Departure Date</label>
+			  <input type="text" class="form-control" id="departure">
+			</div>
+		</div>
+		<div class="col-lg-2 form-arrow">
+			<i class="fa fa-arrow-right" aria-hidden="true"></i>
+		</div>
+		<div class="col-lg-5 right-form">
+			<div class="form-group">
+			  <label for="usr">To</label>
+			  <input type="text" class="form-control" id="to">
+			</div>
+			<div class="form-group">
+			  <label for="usr">Return Date</label>
+			  <input type="text" class="form-control" id="return">
+			</div>
+		</div>
+		<div class="col-lg-4 people-down">
+			<div class="form-group">
+				<label for="usr">Adults</label>
+				<br>
+				<select class="selectpicker people">
+				  <option>1</option>
+				  <option>2</option>
+				  <option>3</option>
+				  <option>4</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-lg-4 people-down">
+			<div class="form-group">
+				<label for="usr">Children</label>
+				<br>
+				<select class="selectpicker people">
+				  <option>0</option>
+				  <option>1</option>
+				  <option>2</option>
+				  <option>3</option>
+				  <option>4</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-lg-4 people-down">
+			<div class="form-group">
+				<label for="usr">Infants</label>
+				<br>
+				<select class="selectpicker people">
+				  <option>0</option>
+				  <option>1</option>
+				  <option>2</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-lg-12">
+			<a href="/results">
+				<div class="submit-button">
+					Search
+				</div>
+			</a>
+		</div>
+		</div>
+    </div>
+    <div class="col-lg-5">
+    	<div id="map"></div>
+    </div>
 {% endblock %}

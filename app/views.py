@@ -3,6 +3,11 @@ from app import app
 from functions import *
 import requests
 
+@app.route('/')
+@app.route('/index')
+def index():
+    return render_template("index.html")
+
 @app.route('/search/api/v1.0/flight-info', methods=['GET'])
 def get_flight_info():
     flight = requests.get('https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin=BOS&destination=LON&departure_date=2016-11-25&nonstop=true')
