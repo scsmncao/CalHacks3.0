@@ -3,7 +3,7 @@ import geocoder
 
 # Data
 
-def fares(results):
+def fares(results): # (FOR AMADEUS API - FLIGHTS)
     """Returns a list of all the cheapest fare options from RESULTS."""
     all_flights = []
     for flights in results:
