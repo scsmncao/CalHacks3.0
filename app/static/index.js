@@ -1,3 +1,13 @@
+// Initialize Firebase
+var config = {
+  apiKey: "AIzaSyB7p1kN4iedzTUsW02wApELcVyOI5kBFlo",
+  authDomain: "ecotravel-1fdee.firebaseapp.com",
+  databaseURL: "https://ecotravel-1fdee.firebaseio.com",
+  storageBucket: "ecotravel-1fdee.appspot.com",
+  messagingSenderId: "649843695207"
+};
+firebase.initializeApp(config);
+
 $(window).on('load', function(){
 
   var map;
@@ -135,6 +145,18 @@ $(window).on('load', function(){
 
   $('.people').selectpicker({
     dropupAuto: false
+  });
+
+  $('#search').click(function() {
+    var link = "/results?";
+    link += "from=" + $('#from').val();
+    link += "&to=" + $('#to').val();
+    link += "&departure_date=" + $('#departure').val();
+    link += "&return_date=" + $('#return').val();
+    link += "&adults=" + $('.adults').find(":selected").text();
+    link += "&children=" + $('.children').find(":selected").text();
+    link += "&infants=" + $('.infants').find(":selected").text();
+    window.location.href = link;
   });
 
   // $('#from').focusout(function() {

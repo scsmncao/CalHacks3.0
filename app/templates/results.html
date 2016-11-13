@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+	<div class="flight-container">
+	    <div class="col-lg-7">
+	    	<div class="col-lg-5 headers">
+	    		{{ airport_from }} <i class="fa fa-arrow-right" aria-hidden="true"></i> {{ to }}
+	    	</div>
+	    	<div class="col-lg-2">
+	    	</div>
+	    	<div class="col-lg-5 headers">
+	    		Departure Date: {{ departure_date }}
+	    	</div>
+	    	<div class="eco-flight-container">
+	    		<h2 style="color: #358247; font-size: 14pt;">Green Flight</h2>
+	    		<div class="col-lg-2">
+		    		<div class="flight-icon">
+		    			<img height=60px src="../static/images/plane_icon.png">
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-3 logistics">
+		    		<div class="time-of-flight top-data">
+		    			{{ data.eco_flight[0].take_off_time }} - {{ data.eco_flight[0].landing_time }}
+		    		</div>
+		    		<div class="airline-company">
+		    			{{ data.eco_flight[0].airline }}
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-3 logistics">
+		    		<div class="duration top-data">
+		    			{{ data.eco_flight[0].duration }}
+		    		</div>
+		    		<div class="airports">
+		    			{{ data.eco_flight[0].origin_airport }} - {{ data.eco_flight[0].destination_airport }}
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-2">
+		    		<div class="rating">
+	    				<img height=70px src="../static/images/grade_{{data.eco_flight[0].eco_grade}}.png">
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-2">
+		    		<div class="price-of-flight top-data">
+		    			${{ data.eco_flight[0].price_of_flight }}
+		    		</div>
+		    		<div class="booking">
+		    			Book
+		    		</div>
+		    	</div>
+	    	</div>
+
+	    	<div class="cheap-flight-container">
+	    		<h2 style="color: #858687;font-size: 14pt;">Cheapest Flight</h2>
+	    		<div class="col-lg-2">
+		    		<div class="flight-icon">
+		    			<img height=60px src="../static/images/plane_icon.png">
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-3 logistics">
+		    		<div class="time-of-flight top-data">
+		    			{{ data.cheap_flight[0].take_off_time }} - {{ data.cheap_flight[0].landing_time }}
+		    		</div>
+		    		<div class="airline-company">
+		    			{{ data.cheap_flight[0].airline }}
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-3 logistics">
+		    		<div class="duration top-data">
+		    			{{ data.cheap_flight[0].duration }}
+		    		</div>
+		    		<div class="airports">
+		    			{{ data.cheap_flight[0].origin_airport }} - {{ data.cheap_flight[0].destination_airport }}
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-2">
+		    		<div class="rating">
+	    				<img height=70px src="../static/images/grade_{{data.cheap_flight[0].eco_grade}}.png">
+		    		</div>
+		    	</div>
+		    	<div class="col-lg-2">
+		    		<div class="price-of-flight top-data">
+		    			${{ data.cheap_flight[0].price_of_flight }}
+		    		</div>
+		    		<div class="booking">
+		    			Book
+		    		</div>
+		    	</div>
+	    	</div>
+	    </div>
+	</div>
+{% endblock %}
