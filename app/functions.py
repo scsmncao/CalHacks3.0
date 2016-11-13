@@ -3,6 +3,8 @@ from datetime import datetime
 from datetime import timedelta
 import geocoder, json
 
+### Flight ###
+
 # Airlines Data
 
 with open('airlines.json') as json_data:
@@ -37,6 +39,10 @@ def take_off_time(fare):
     formatted_time = datetime.strptime(time, "%H:%M")
     return formatted_time.strftime("%I:%M %p")
 
+def take_off_time_mil(fare):
+    """Return the MILITARY TAKE OFF TIME from FARE."""
+    return fare["itineraries"][0]["outbound"]["flights"][0]["departs_at"][11:]
+
 def take_off_date(fare):
     """Return the TAKE OFF DATE from FARE."""
     time_str = fare["itineraries"][0]["outbound"]["flights"][0]["departs_at"]
@@ -47,6 +53,10 @@ def landing_time(fare):
     time = fare["itineraries"][0]["outbound"]["flights"][0]["arrives_at"][11:]
     formatted_time = datetime.strptime(time, "%H:%M")
     return formatted_time.strftime("%I:%M %p")
+
+def landing_time_mil(fare):
+    """Return the MILITARY LANDING TIME from FARE."""
+    return fare["itineraries"][0]["outbound"]["flights"][0]["arrives_at"][11:]
 
 def landing_date(fare):
     """Return the LANDING DATE from FARE."""
@@ -69,25 +79,7 @@ def longitude(location):
     """Returns the LONGITUDE COORDINATE of the LOCATION."""
     return geocoder.google('{0} AIRPORT'.format(location)).lng
 
-# Cheapest Priced Flight
-
-def total_prices(fares):
-    """Returns a dictionary of the total price of each flight from FARES."""
-    prices_by_fare = {}
-    for f in fares:
-        total_price = float(f["fare"]["total_price"])
-        prices_by_fare['Flight #{0}'.format(flight_number(f))] = total_price
-    return prices_by_fare
-
-def cheapest_flight(fares):
-    """Returns the cheapest flight in the format '[ORIGIN] to [DESTINATION]'."""
-    return min(total_prices(fares), key=total_prices(fares).get)
-
-def cheapest_flight_price(fares):
-    """Returns the cheapest flight from the dictionary of FARES_WITH_PRICES."""
-    return min(total_prices(fares).values())
-
-# CO2 Emission
+# CO2 Emission for Flights
 
 def distance(fare):
     """Returns the DISTANCE (in miles) from FARE."""
@@ -126,3 +118,79 @@ def duration(fare):
         hours = int(minutes // 60)
         minutes -= 60 * hours
     return "{0}h {1}m".format(hours, minutes)
+
+# Cheapest Priced Flight
+
+def total_prices(fares):
+    """Returns a dictionary of the total price of each flight from FARES."""
+    prices_by_fare = {}
+    for f in fares:
+        total_price = float(f["fare"]["total_price"])
+        prices_by_fare[flight_number(f)] = total_price
+    return prices_by_fare
+
+def cheapest_flight(fares):
+    """Returns the cheapest flight in the form of FLIGHT NUMBER."""
+    return min(total_prices(fares), key=total_prices(fares).get)
+
+def cheapest_flight_price(fares):
+    """Returns the cheapest flight from the dictionary of FARES_WITH_PRICES."""
+    return min(total_prices(fares).values())
+
+# Ecoflight
+
+def eco_time(fares):
+    """Returns the flight fom FARES that is closest to 6am in take off time."""
+    fare_times = {}
+    for f in fares:
+        t = int(take_off_time_mil(f)[:2])
+        fare_times[flight_number(f)] = t
+    return min(fare_times, key=lambda x: fare_times[x] if fare_times[x] >= 6 else d[x]+12)
+
+### Transit & Driving ###
+
+# Transit Route Data Unpacker
+
+def route(routes): # (FOR G-MAPS-TRANSIT & DRVING API)
+    """Returns the route (transit or driving) from ROUTES."""
+    return routes["legs"][0]
+
+# Transit Data Elements
+
+def t_origin(t):
+    return t["start_address"]
+
+def t_destination(t):
+    return t["end_address"]
+
+def t_arrive_time(t):
+    return t["arrival_time"]["text"]
+
+def t_depart_time(t):
+    return t["departure_time"]["text"]
+
+def t_arrive_date():
+    fares = fares(results) # Amadeus API
+    return take_off_date(fares)
+
+def t_duration(t):
+    return t["duration"]["text"]
+
+def t_price(t):
+    return int(t["distance"]["text"][:-3]) * 0.78
+
+def t_emissions(t):
+    return int(t["distance"]["text"][:-3]) * 0.08 * 0.453592
+
+# Driving Data Elements
+
+def d_duration(d):
+    return d["duration"]["text"]
+
+def d_emissions(d):
+    return int(t["distance"]["text"][:-3]) * 0.35 * 0.453592
+
+### Eco-Grade ###
+
+# def eco_grade(emission):
+#     """Return the ECO-GRADE based on CO-2 emitted."""

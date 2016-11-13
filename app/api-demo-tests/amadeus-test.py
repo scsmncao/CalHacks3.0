@@ -88,7 +88,7 @@ test = [
     ]
   }]
 
-f = test[0]
+f = fares(test)
 
 '''
   ,

@@ -9,9 +9,15 @@ def index():
     return render_template("index.html")
 
 @app.route('/search/api/v1.0/flight-info', methods=['GET'])
-def get_flight_info():
-    flight = requests.get('https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin=BOS&destination=LON&departure_date=2016-11-25&nonstop=true')
+def get_flight_info(): # for Cheapest Flight
+    flight = requests.get('https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin=BOS&destination=LON&departure_date=2016-11-25&nonstop=false')
     json_object = flight.json()
+    return jsonify(json_object['results'])
+
+@app.route('/search/api/v1.0/nonstop-flight-info', methods=['GET'])
+def get_nonstop_flight_info(): # for Ecoflight
+    nonstop_flight = requests.get('https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin=BOS&destination=LON&departure_date=2016-11-25&nonstop=true')
+    json_object = nonstop_flight.json()
     return jsonify(json_object['results'])
 
 @app.route('/search/api/v1.0/drive-info', methods=['GET'])
@@ -25,23 +31,3 @@ def get_transit_info():
     transit = requests.get('https://maps.googleapis.com/maps/api/directions/json?origin=Boston+Logan+International+Airport,+1+Harborside+Dr,+Boston,+MA+02128&destination=John+F.+Kennedy+International+Airport,+New+York,+NY+11430&mode=transit&key=AIzaSyAupEuZynix3YD4F9QTknDAdLNEEIUqX7k')
     json_object = transit.json()
     return jsonify(json_object['routes'])
-
-# @app.route('/')
-# @app.route('/index')
-
-# def index():
-#     user = {'nickname': 'Miguel'}  # fake user
-#     posts = [  # fake array of posts
-#         {
-#             'author': {'nickname': 'John'},
-#             'body': 'Beautiful day in Portland!'
-#         },
-#         {
-#             'author': {'nickname': 'Susan'},
-#             'body': 'The Avengers movie was so cool!'
-#         }
-#     ]
-#     return render_template("index.html",
-#                            title='Home',
-#                            user=user,
-#                            posts=posts)
