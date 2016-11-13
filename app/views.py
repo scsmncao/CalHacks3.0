@@ -1,5 +1,5 @@
 from flask import render_template, Flask, jsonify
-
+from app import app
 import requests
 from flask import request
 from geopy.distance import vincenty
@@ -7,7 +7,18 @@ from datetime import datetime
 from datetime import timedelta
 import geocoder, json
 
+@app.route('/')
+@app.route('/index')
+def index():
+    return render_template("index.html")
 
+@app.route('/signup')
+def signup():
+    return render_template("signup.html")
+
+@app.route('/signin')
+def signin():
+    return render_template("signin.html")
 
 ### Flight ###
 
@@ -305,7 +316,7 @@ def d_emissions(d):
 # def eco_grade(emission):
 #     """Return the ECO-GRADE based on CO-2 emitted."""
 
-
+@app.route('/results')
 def results():
     airport_from = request.args.get('from')
     to = request.args.get('to')
