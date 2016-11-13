@@ -107,6 +107,61 @@ def reference(fares):
         reference[flight_number(f)] = f
     return reference
 
+
+def price_cheap(fare):
+    """Returns the PRICE of the FARE."""
+    return fare["fare"]["total_price"]
+
+def airline_name_cheap(fare):
+    """Returns the AIRLINE NAME from FARE."""
+    airline_code = fare["operating_airline"]
+    for d in airlines_iata:
+        if d['iata'] == airline_code:
+            return d['name']
+    return airline_code
+
+def flight_number_cheap(fare):
+    """Return the FLIGHT NUMBER from FARE."""
+    return fare["flight_number"]
+
+def take_off_time_cheap(fare):
+    """Return the TAKE OFF TIME from FARE."""
+    time = fare["departs_at"][11:]
+    formatted_time = datetime.strptime(time, "%H:%M")
+    return formatted_time.strftime("%I:%M %p")
+
+def take_off_time_mil_cheap(fare):
+    """Return the MILITARY TAKE OFF TIME from FARE."""
+    return fare["departs_at"][11:]
+
+def take_off_date_cheap(fare):
+    """Return the TAKE OFF DATE from FARE."""
+    time_str = fare["departs_at"]
+    return time_str[5:7] + "/" + time_str[8:10] + "/" + time_str[:4]
+
+def landing_time_cheap(fare):
+    """Return the LANDING TIME from FARE."""
+    time = fare["arrives_at"][11:]
+    formatted_time = datetime.strptime(time, "%H:%M")
+    return formatted_time.strftime("%I:%M %p")
+
+def landing_time_mil_cheap(fare):
+    """Return the MILITARY LANDING TIME from FARE."""
+    return fare["itineraries"][0]["outbound"]["flights"][0]["arrives_at"][11:]
+
+def landing_date_cheap(fare):
+    """Return the LANDING DATE from FARE."""
+    time_str = fare["itineraries"][0]["outbound"]["flights"][0]["arrives_at"]
+    return time_str[5:7] + "/" + time_str[8:10] + "/" + time_str[:4]
+
+def origin_cheap(fare):
+    """Return the ORIGIN AIRPORT from FARE."""
+    return fare["origin"]["airport"]
+
+def destination_cheap(fare):
+    """Return the DESTINATION AIRPORT from FARE."""
+    return fare["destination"]["airport"]
+
 # CO2 Emission for Flights
 
 def distance(fare):
@@ -145,7 +200,10 @@ def lowest_co2_flight_amount(fares):
 
 def duration(fare):
     """Returns the string DURATION of the FARE, given an average flight travels 7.45645 mi/min."""
-    minutes = int(distance(fare) // 7.45645)
+    minutes = int(distance(fare) / 7.45645)
+    print(distance(fare))
+    print(minutes)
+    hours = 0
     if minutes > 59:
         hours = int(minutes // 60)
         minutes -= 60 * hours
@@ -211,7 +269,7 @@ def eco_time(fares):
     for f in fares:
         t = int(take_off_time_mil(f)[:2])
         fare_times[flight_number(f)] = t
-    return min(fare_times, key=lambda x: fare_times[x] if fare_times[x] >= 6 else d[x]+12)
+    return min(fare_times, key=lambda x: fare_times[x] if fare_times[x] >= 6 else fare_times[x]+8)
 
 ### Transit & Driving ###
 
@@ -219,7 +277,6 @@ def eco_time(fares):
 
 def route(routes): # (FOR G-MAPS-TRANSIT & DRVING API)
     """Returns the route (transit or driving) from ROUTES."""
-    print(routes)
     if (len(routes) > 0):
         return routes[0]["legs"][0]
 
@@ -274,50 +331,65 @@ def results():
     t_routes = get_transit_info(airport_from, to)
 
     l_c_routes = fares(c_routes)
-    l_cheapest = cheapest_flights(l_c_routes)
-    r_c_routes = reference(l_c_routes)
-    cheapest_1 = r_c_routes[cheapest(l_cheapest)]
-    try:
-        cheapest_2 = r_c_routes[alt_1(l_cheapest)]
-        d_cheap_flight_2 = {
-            'duration': duration(cheapest_2),
-            'take_off_time': take_off_time(cheapest_2),
-            'landing_time': landing_time(cheapest_2),
-            'price_of_flight': price(cheapest_2),
-            'destination_airport': destination(cheapest_2),
-            'origin_airport': origin(cheapest_2),
-            'eco_grade': 'A',
-            'airline': airline_name(cheapest_2),
-            'emissions': emission(cheapest_2) }
-    except KeyError:
-        d_cheap_flight_2 = None
-    try:
-        cheapest_3 = r_c_routes[alt_2(l_cheapest)]
-        d_cheap_flight_3 = [{
-            'duration': duration(cheapest_3),
-            'take_off_time': take_off_time(cheapest_3),
-            'landing_time': landing_time(cheapest_3),
-            'price_of_flight': price(cheapest_3),
-            'destination_airport': destination(cheapest_3),
-            'origin_airport': origin(cheapest_3),
-            'eco_grade': 'A',
-            'airline': airline_name(cheapest_3),
-            'emissions': emission(cheapest_3) }]
-    except KeyError:
-        d_cheap_flight_3 = None
+
+    d_cheap_flight_2 = []
+    flights = l_c_routes[1]["itineraries"][0]["outbound"]["flights"]
+    for flight in flights:
+        d_cheap_flight_2.append({
+        'duration': duration(l_c_routes[1]),
+        'take_off_time': take_off_time_cheap(flight),
+        'landing_time': landing_time_cheap(flight),
+        'price_of_flight': price_cheap(l_c_routes[1]),
+        'destination_airport': destination_cheap(flight),
+        'origin_airport': origin_cheap(flight),
+        'eco_grade': 'A',
+        'airline': airline_name_cheap(flight),
+        'emissions': emission(l_c_routes[1]) })
+
+    d_cheap_flight_3 = []
+    flights = l_c_routes[2]["itineraries"][0]["outbound"]["flights"]
+    for flight in flights:
+        d_cheap_flight_3.append({
+        'duration': duration(l_c_routes[2]),
+        'take_off_time': take_off_time_cheap(flight),
+        'landing_time': landing_time_cheap(flight),
+        'price_of_flight': price_cheap(l_c_routes[2]),
+        'destination_airport': destination_cheap(flight),
+        'origin_airport': origin_cheap(flight),
+        'eco_grade': 'A',
+        'airline': airline_name_cheap(flight),
+        'emissions': emission(l_c_routes[2]) })
+
+    d_cheap_flight_1 = []
+    flights = l_c_routes[0]["itineraries"][0]["outbound"]["flights"]
+    for flight in flights:
+        d_cheap_flight_1.append({
+        'duration': duration(l_c_routes[0]),
+        'take_off_time': take_off_time_cheap(flight),
+        'landing_time': landing_time_cheap(flight),
+        'price_of_flight': price_cheap(l_c_routes[0]),
+        'destination_airport': destination_cheap(flight),
+        'origin_airport': origin_cheap(flight),
+        'eco_grade': 'A',
+        'airline': airline_name_cheap(flight),
+        'emissions': emission(l_c_routes[0]) })
+
 
     l_e_routes = fares(e_routes)
     r_e_routes = reference(l_e_routes)
-    eco_flight = r_e_routes[eco_time(l_e_routes)]
+    if (len(d_cheap_flight_1) > 1):
+        eco_flight = l_e_routes[0]
+    else:
+        eco_flight = r_e_routes[eco_time(l_e_routes)]
 
     if t_routes:
         l_t_routes = route(t_routes)
-        d_transit = {
+        d_transit = [{
             'depart_time': t_depart_time(l_t_routes),
             'arrive_time': t_arrive_time(l_t_routes),
             'duration': t_duration(l_t_routes),
             'price': t_price(l_t_routes),
-            'eco_grade': 'A' }
+            'eco_grade': 'A' }]
     else:
         d_transit = []
     if d_routes:
@@ -341,17 +413,6 @@ def results():
         'airline': airline_name(eco_flight),
         'emissions': emission(eco_flight) }]
 
-    d_cheap_flight_1 = [{
-        'duration': duration(cheapest_1),
-        'take_off_time': take_off_time(cheapest_1),
-        'landing_time': landing_time(cheapest_1),
-        'price_of_flight': price(cheapest_1),
-        'destination_airport': destination(cheapest_1),
-        'origin_airport': origin(cheapest_1),
-        'eco_grade': 'A',
-        'airline': airline_name(cheapest_1),
-        'emissions': emission(cheapest_1) }]
-
     data = {
         'eco_flight':d_eco_flight,
         'cheap_flight_1':d_cheap_flight_1,
@@ -366,13 +427,12 @@ def date_to_api(s):
     return s[6:] + "-" + s[:2] + "-" + s[3:5]
 
 def get_flight_info(airport_from, to, departure_date, adults, children, infants): # for Cheapest Flight
-    flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
+    flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=false&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
     json_object = flight.json()
-    print(json_object)
     return json_object['results']
 
 def get_nonstop_flight_info(airport_from, to, departure_date, adults, children, infants): # for Ecoflight
-    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
+    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true&number_of_results=3".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
     json_object = nonstop_flight.json()
     return json_object['results']
 

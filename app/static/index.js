@@ -1,13 +1,3 @@
-// Initialize Firebase
-var config = {
-  apiKey: "AIzaSyB7p1kN4iedzTUsW02wApELcVyOI5kBFlo",
-  authDomain: "ecotravel-1fdee.firebaseapp.com",
-  databaseURL: "https://ecotravel-1fdee.firebaseio.com",
-  storageBucket: "ecotravel-1fdee.appspot.com",
-  messagingSenderId: "649843695207"
-};
-firebase.initializeApp(config);
-
 $(window).on('load', function(){
 
   var map;
