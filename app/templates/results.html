@@ -302,7 +302,36 @@
 					    	</div>
 				    	</div>
 				    {% endif %}
-	    			</div>
+				    {% if data.car|length > 0 %}
+					    <div class="transit-alternative alternative-cell">
+			    				<div class="col-lg-2 icon">
+						    		<div class="train-icon">
+						    			<img height=70px src="../static/images/car_icon.png">
+						    		</div>
+						    	</div>
+						    	<div class="col-lg-5 alternative-logistics">
+						    		<div class="train-duration">
+						    			{{ data.car[0].duration }}
+						    		</div>
+						    	</div>
+						    	<div class="col-lg-2 alternative-logistics">
+						    		<div class="alternative-rating">
+					    				<img width=50px src="../static/images/grade_{{data.car[0].eco_grade}}.png">
+						    		</div>
+						    	</div>
+						    	<div class="col-lg-2">
+						    		<div class="alternative-price alternative-price" style="font-size:10pt">
+					    				{{ data.public_transit[0].price }}pts
+						    		</div>
+						    	</div>
+						    	<div class="col-lg-1">
+						    		<div class="more-arrow">
+						    			<i class="fa fa-chevron-right" aria-hidden="true"></i>
+						    		</div>
+						    	</div>
+					    	</div>
+		    			</div>
+	    			{% endif %}
 	    		</div>
 	    	</div>
 	    </div>

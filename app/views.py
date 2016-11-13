@@ -6,6 +6,9 @@ from geopy.distance import vincenty
 from datetime import datetime
 from datetime import timedelta
 import geocoder, json
+import googlemaps
+
+gmaps = googlemaps.Client('AIzaSyCAmwyfRN2oxAttYY1iF5O3gDYg_3qvGhw')
 
 @app.route('/')
 @app.route('/index')
@@ -94,11 +97,11 @@ def destination(fare):
 
 def latitude(location):
     """Returns the LATITUDE COORDINATE of the LOCATION."""
-    return geocoder.google('{0} AIRPORT'.format(location)).lat
+    return gmaps.geocode('{0} AIRPORT'.format(location))[0]['geometry']['location']['lat']
 
 def longitude(location):
     """Returns the LONGITUDE COORDINATE of the LOCATION."""
-    return geocoder.google('{0} AIRPORT'.format(location)).lng
+    return gmaps.geocode('{0} AIRPORT'.format(location))[0]['geometry']['location']['lng']
 
 def reference(fares):
     """Reference JSON to each fare in FARES by FLIGHT NUMBER."""
@@ -166,13 +169,23 @@ def destination_cheap(fare):
 
 def distance(fare):
     """Returns the DISTANCE (in miles) from FARE."""
-    origin_lat, origin_lng = latitude(origin(fare[0])), longitude(origin(fare[0]))
-    destin_lat, destin_lng = latitude(destination(fare[0])), longitude(destination(fare[0]))
+    origin_lat, origin_lng = latitude(origin(fare)), longitude(origin(fare))
+    destin_lat, destin_lng = latitude(destination(fare)), longitude(destination(fare))
+    return vincenty((origin_lat, origin_lng), (destin_lat, destin_lng)).miles
+
+def distance_cheap(fare):
+    """Returns the DISTANCE (in miles) from FARE."""
+    origin_lat, origin_lng = latitude(origin_cheap(fare)), longitude(origin_cheap(fare))
+    destin_lat, destin_lng = latitude(destination_cheap(fare)), longitude(destination_cheap(fare))
     return vincenty((origin_lat, origin_lng), (destin_lat, destin_lng)).miles
 
 def emission(fare):
     """Returns the CO2 emissions of the FARE in kg."""
     return distance(fare) * 0.21 * 0.453592
+
+def emission_cheap(fare):
+    """Returns the CO2 emissions of the FARE in kg."""
+    return distance_cheap(fare) * 0.21 * 0.453592
 
 def no_stop_distances(fares):
     """Returns a dictionary of the total distance (in miles) of each flight from FARES."""
@@ -201,8 +214,15 @@ def lowest_co2_flight_amount(fares):
 def duration(fare):
     """Returns the string DURATION of the FARE, given an average flight travels 7.45645 mi/min."""
     minutes = int(distance(fare) / 7.45645)
-    print(distance(fare))
-    print(minutes)
+    hours = 0
+    if minutes > 59:
+        hours = int(minutes // 60)
+        minutes -= 60 * hours
+    return "{0}h {1}m".format(hours, minutes)
+
+def duration_cheap(fare):
+    """Returns the string DURATION of the FARE, given an average flight travels 7.45645 mi/min."""
+    minutes = int(distance_cheap(fare) / 7.45645)
     hours = 0
     if minutes > 59:
         hours = int(minutes // 60)
@@ -297,8 +317,11 @@ def t_depart_time(t):
 def t_duration(t):
     return t["duration"]["text"]
 
+def t_distance(t):
+    return t["distance"]["text"]
+
 def t_price(t):
-    return int(t["distance"]["text"][:-3].replace(",", "")) * 0.78
+    return int(t["distance"]["text"][:-3].replace(",", "")) * 0.10
 
 def t_emissions(t):
     return int(t["distance"]["text"][:-3].replace(",", "")) * 0.08 * 0.453592
@@ -308,8 +331,38 @@ def t_emissions(t):
 def d_duration(d):
     return d["duration"]["text"]
 
+def d_duration(d):
+    return d["distance"]["text"]
+
 def d_emissions(d):
-    return int(t["distance"]["text"][:-3].replace(",", "")) * 0.35 * 0.453592
+    return int(d["distance"]["text"][:-3].replace(",", "")) * 0.14 * 0.453592
+
+def get_letter_grade(dictOfEmissions):
+    lowestKey = ""
+    lowestEmission = float("inf")
+    letterDict = {}
+    print(dictOfEmissions)
+    for key in dictOfEmissions:
+        if (dictOfEmissions[key] != None and dictOfEmissions[key] < lowestEmission):
+            lowestKey = key
+            lowestEmission = dictOfEmissions[key]
+    for key in dictOfEmissions:
+        if (dictOfEmissions[key] != None):
+            scaled = lowestEmission/float(dictOfEmissions[key])
+            if (scaled > .8):
+                letterDict[key] = 'A'
+            elif (scaled > .6):
+                letterDict[key] = 'B'
+            elif (scaled > .4):
+                letterDict[key] = 'C'
+            elif (scaled > .2):
+                letterDict[key] = 'D'
+            else:
+                letterDict[key] = 'F'
+
+    return letterDict
+
+
 
 ### Eco-Grade ###
 
@@ -332,11 +385,18 @@ def results():
 
     l_c_routes = fares(c_routes)
 
+    emissionDict = {}
+
     d_cheap_flight_2 = []
+    totalEmissions = 0
     flights = l_c_routes[1]["itineraries"][0]["outbound"]["flights"]
-    for flight in flights:
+    for index, flight in enumerate(flights):
+        totalEmissions += emission_cheap(flight)
+        if (index > 0):
+            totalEmissions += 200
+        print(emission_cheap(flight))
         d_cheap_flight_2.append({
-        'duration': duration(l_c_routes[1]),
+        'duration': duration_cheap(flight),
         'take_off_time': take_off_time_cheap(flight),
         'landing_time': landing_time_cheap(flight),
         'price_of_flight': price_cheap(l_c_routes[1]),
@@ -344,13 +404,20 @@ def results():
         'origin_airport': origin_cheap(flight),
         'eco_grade': 'A',
         'airline': airline_name_cheap(flight),
-        'emissions': emission(l_c_routes[1]) })
+        'emissions': emission_cheap(flight) })
+
+    emissionDict['flight_2'] = totalEmissions
+
 
     d_cheap_flight_3 = []
+    totalEmissions = 0
     flights = l_c_routes[2]["itineraries"][0]["outbound"]["flights"]
-    for flight in flights:
+    for index, flight in enumerate(flights):
+        totalEmissions += emission_cheap(flight)
+        if (index > 0):
+            totalEmissions += 200
         d_cheap_flight_3.append({
-        'duration': duration(l_c_routes[2]),
+        'duration': duration_cheap(flight),
         'take_off_time': take_off_time_cheap(flight),
         'landing_time': landing_time_cheap(flight),
         'price_of_flight': price_cheap(l_c_routes[2]),
@@ -358,13 +425,19 @@ def results():
         'origin_airport': origin_cheap(flight),
         'eco_grade': 'A',
         'airline': airline_name_cheap(flight),
-        'emissions': emission(l_c_routes[2]) })
+        'emissions': emission_cheap(flight) })
+
+    emissionDict['flight_3'] = totalEmissions
 
     d_cheap_flight_1 = []
+    totalEmissions = 0
     flights = l_c_routes[0]["itineraries"][0]["outbound"]["flights"]
-    for flight in flights:
+    for index, flight in enumerate(flights):
+        totalEmissions += emission_cheap(flight)
+        if (index > 0):
+            totalEmissions += 200
         d_cheap_flight_1.append({
-        'duration': duration(l_c_routes[0]),
+        'duration': duration_cheap(flight),
         'take_off_time': take_off_time_cheap(flight),
         'landing_time': landing_time_cheap(flight),
         'price_of_flight': price_cheap(l_c_routes[0]),
@@ -372,8 +445,10 @@ def results():
         'origin_airport': origin_cheap(flight),
         'eco_grade': 'A',
         'airline': airline_name_cheap(flight),
-        'emissions': emission(l_c_routes[0]) })
+        'emissions': emission_cheap(flight) })
 
+    emissionDict['flight_1'] = totalEmissions
+    print('flight 1 emission' + str(totalEmissions))
 
     l_e_routes = fares(e_routes)
     r_e_routes = reference(l_e_routes)
@@ -390,15 +465,19 @@ def results():
             'duration': t_duration(l_t_routes),
             'price': t_price(l_t_routes),
             'eco_grade': 'A' }]
+        emissionDict['transit'] = t_emissions(l_t_routes)
     else:
         d_transit = []
+        emissionDict['transit'] = None
     if d_routes:
         l_d_routes = route(d_routes)
         d_drive = [{
             'duration': d_duration(l_d_routes),
             'eco_grade': 'A' }]
+        emissionDict['car'] = d_emissions(l_d_routes)
     else:
         d_drive = []
+        emissionDict['car'] = None
 
     # Dictionaries
 
@@ -409,9 +488,30 @@ def results():
         'price_of_flight': price(eco_flight),
         'destination_airport': destination(eco_flight),
         'origin_airport': origin(eco_flight),
-        'eco_grade': 'A',
+        'eco_grade': 'D',
         'airline': airline_name(eco_flight),
         'emissions': emission(eco_flight) }]
+
+    print('eco flight emission' + str(emission(eco_flight)))
+
+    emissionDict['eco_flight'] = emission(eco_flight)
+
+    grade = get_letter_grade(emissionDict)
+
+    for flight in d_cheap_flight_1:
+        flight['eco_grade'] = grade['flight_1']
+    for flight in d_cheap_flight_2:
+        flight['eco_grade'] = grade['flight_2']
+    for flight in d_cheap_flight_3:
+        flight['eco_grade'] = grade['flight_3']
+    for flight in d_eco_flight:
+        flight['eco_grade'] = grade['eco_flight']
+    if len(d_transit) > 0:
+        d_transit[0]['eco_grade'] = grade['transit']
+    if len(d_drive) > 0:
+        d_drive[0]['eco_grade'] = grade['car']
+
+    print(grade)
 
     data = {
         'eco_flight':d_eco_flight,
@@ -432,7 +532,7 @@ def get_flight_info(airport_from, to, departure_date, adults, children, infants)
     return json_object['results']
 
 def get_nonstop_flight_info(airport_from, to, departure_date, adults, children, infants): # for Ecoflight
-    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true&number_of_results=3".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
+    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
     json_object = nonstop_flight.json()
     return json_object['results']
 
