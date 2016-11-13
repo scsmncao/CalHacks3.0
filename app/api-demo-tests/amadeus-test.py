@@ -1,5 +1,4 @@
 # Amadeus Flight API Test
-from functions
 
 true, false = True, False
 
@@ -87,7 +86,12 @@ test = [
         }
       }
     ]
-  },
+  }]
+
+f = test[0]
+
+'''
+  ,
   {
     "fare": {
       "price_per_adult": {
@@ -425,3 +429,4 @@ test = [
     ]
   }
 ]
+'''
