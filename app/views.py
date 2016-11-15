@@ -7,13 +7,22 @@ from datetime import datetime
 from datetime import timedelta
 import geocoder, json
 import googlemaps
+import json
 
-gmaps = googlemaps.Client('AIzaSyCAmwyfRN2oxAttYY1iF5O3gDYg_3qvGhw')
+googleKey = ""
+amadeusKey = ""
+
+with open('keys.json') as data_file:    
+    data = json.load(data_file)
+    googleKey = data["google"]
+    amadeusKey = data["amadeus"]
+
+gmaps = googlemaps.Client(googleKey)
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html")
+    return render_template("index.html", amadeusKey=amadeusKey)
 
 @app.route('/signup')
 def signup():
@@ -527,21 +536,21 @@ def date_to_api(s):
     return s[6:] + "-" + s[:2] + "-" + s[3:5]
 
 def get_flight_info(airport_from, to, departure_date, adults, children, infants): # for Cheapest Flight
-    flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=false&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
+    flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey={6}&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=false&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants, amadeusKey))
     json_object = flight.json()
     return json_object['results']
 
 def get_nonstop_flight_info(airport_from, to, departure_date, adults, children, infants): # for Ecoflight
-    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants))
+    nonstop_flight = requests.get("https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey={6}&origin={0}&destination={1}&departure_date={2}&adults={3}&children={4}&infants={5}&nonstop=true&number_of_results=5".format(airport_from, to, date_to_api(departure_date), adults, children, infants, amadeusKey))
     json_object = nonstop_flight.json()
     return json_object['results']
 
 def get_drive_info(airport_from, to):
-    drive = requests.get('https://maps.googleapis.com/maps/api/directions/json?origin={0}&destination=J{1}&key=AIzaSyAupEuZynix3YD4F9QTknDAdLNEEIUqX7k'.format(airport_from, to))
+    drive = requests.get('https://maps.googleapis.com/maps/api/directions/json?origin={0}&destination=J{1}&key={2}'.format(airport_from, to, googleKey))
     json_object = drive.json()
     return json_object['routes']
 
 def get_transit_info(airport_from, to):
-    transit = requests.get('https://maps.googleapis.com/maps/api/directions/json?origin={0}&destination={1}&mode=transit&key=AIzaSyAupEuZynix3YD4F9QTknDAdLNEEIUqX7k'.format(airport_from, to))
+    transit = requests.get('https://maps.googleapis.com/maps/api/directions/json?origin={0}&destination={1}&mode=transit&key={2}'.format(airport_from, to, googleKey))
     json_object = transit.json()
     return json_object['routes']

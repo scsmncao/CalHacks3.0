@@ -70,57 +70,6 @@ $(window).on('load', function(){
     flightPath.setMap(map);
   }
 
-
-  $("#from").keyup(function() {
-    var search = $("#from").val()
-    console.log(search);
-    if (search != "") {
-      $.ajax({
-        url: "https://api.sandbox.amadeus.com/v1.2/airports/autocomplete?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&term=" + search,
-        success: function(result) {
-          console.log(result);
-          var codes = []
-          for (var i = 0; i < result.length; i++) {
-            console.log(result[i]['value'])
-            if (i > 5) {
-              break;
-            }
-            codes.push({label: result[i]['label'], value:result[i]['value']});
-          }
-          console.log(codes);
-          $('#from').autocomplete({
-            source: codes
-          });
-        }
-      });
-    }
-  });
-
-  $("#to").keyup(function() {
-    var search = $("#to").val()
-    console.log(search);
-    if (search != "") {
-      $.ajax({
-        url: "https://api.sandbox.amadeus.com/v1.2/airports/autocomplete?apikey=R26ZAzuBsJnmMFFX2RVh0qEK2PpDLgPx&term=" + search,
-        success: function(result) {
-          console.log(result);
-          var codes = []
-          for (var i = 0; i < result.length; i++) {
-            console.log(result[i]['value'])
-            if (i > 5) {
-              break;
-            }
-            codes.push({label: result[i]['label'], value:result[i]['value']});
-          }
-          console.log(codes);
-          $('#to').autocomplete({
-            source: codes
-          });
-        }
-      });
-    }
-  });
-
   $( "#departure" ).datepicker({
     autoclose: true,
     todayHighlight: true,
